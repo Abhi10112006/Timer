@@ -1,0 +1,5 @@
+{
+  "name": "FocusFlow",
+  "description": "A minimal, offline-first study timer and stopwatch for students. Features distraction-free tracking, session history, and progress visualization using local storage.",
+  "requestFramePermissions": []
+}
