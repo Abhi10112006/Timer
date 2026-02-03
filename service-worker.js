@@ -1,12 +1,13 @@
 
-const CACHE_NAME = 'focusflow-v2';
-const DYNAMIC_CACHE = 'focusflow-dynamic-v2';
+const CACHE_NAME = 'focusflow-v3';
+const DYNAMIC_CACHE = 'focusflow-dynamic-v3';
 
 // Files to cache immediately
 const PRECACHE_URLS = [
   '/',
   '/index.html',
-  '/manifest.json'
+  '/manifest.json',
+  '/icon.svg'
 ];
 
 self.addEventListener('install', (event) => {
