@@ -1,6 +1,6 @@
 
-const CACHE_NAME = 'focusflow-v1';
-const DYNAMIC_CACHE = 'focusflow-dynamic-v1';
+const CACHE_NAME = 'focusflow-v2';
+const DYNAMIC_CACHE = 'focusflow-dynamic-v2';
 
 // Files to cache immediately
 const PRECACHE_URLS = [
@@ -36,19 +36,36 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // 1. Handle External CDN (esm.sh, fonts, etc.) - Stale While Revalidate
+  // 1. Handle Navigation (HTML) - Network First, fallback to Cache
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          return caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, response.clone());
+            return response;
+          });
+        })
+        .catch(() => {
+          return caches.match(event.request)
+            .then(response => response || caches.match('/index.html'));
+        })
+    );
+    return;
+  }
+
+  // 2. Handle External CDN (esm.sh, fonts, etc.) - Stale While Revalidate
   if (url.origin !== self.location.origin) {
     event.respondWith(
       caches.open(DYNAMIC_CACHE).then((cache) => {
         return cache.match(event.request).then((response) => {
           const fetchPromise = fetch(event.request).then((networkResponse) => {
-            // Only cache valid responses
             if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'cors') {
                cache.put(event.request, networkResponse.clone());
             }
             return networkResponse;
           }).catch(() => {
-             // Swallow errors for background updates
+             // Ignore errors
           });
           return response || fetchPromise;
         });
@@ -57,7 +74,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. Handle Local Assets - Cache First, Fallback to Network
+  // 3. Handle Local Assets - Cache First, Fallback to Network
   event.respondWith(
     caches.match(event.request).then((response) => {
       if (response) {
@@ -65,7 +82,6 @@ self.addEventListener('fetch', (event) => {
       }
       return fetch(event.request).then((networkResponse) => {
         return caches.open(DYNAMIC_CACHE).then((cache) => {
-           // Cache valid local resources
            if (event.request.method === 'GET' && networkResponse.status === 200) {
               cache.put(event.request, networkResponse.clone());
            }
