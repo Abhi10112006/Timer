@@ -2,10 +2,11 @@
 import { TimerSettings, StreakSettings } from './types';
 
 export const DB_NAME = 'FocusFlowDB';
-export const DB_VERSION = 5; // Bumped version for new stores
+export const DB_VERSION = 6; // Bumped version for new journal store
 export const STORE_NAME = 'sessions';
 export const SETTINGS_STORE_NAME = 'settings';
-export const STREAK_STORE_NAME = 'streak_logs'; // New store for secret app
+export const STREAK_STORE_NAME = 'streak_logs';
+export const JOURNAL_STORE_NAME = 'journal_entries'; // New store
 
 export const DEFAULT_POMODORO_TIME = 25 * 60; // 25 minutes
 export const SHORT_BREAK_TIME = 5 * 60;
@@ -21,8 +22,12 @@ export const DEFAULT_SETTINGS: TimerSettings = {
 };
 
 export const DEFAULT_STREAK_SETTINGS: StreakSettings = {
-  lastRelapseDate: Date.now(),
-  bestStreakSeconds: 0
+  lastRelapseDate: 0,
+  bestStreakSeconds: 0,
+  securityQuestion: undefined,
+  securityAnswer: undefined,
+  credentialId: undefined,
+  isActive: false // User must manually start
 };
 
 // Hex colors for Recharts - Amber First

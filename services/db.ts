@@ -1,6 +1,6 @@
 
-import { StudySession, TimerSettings, StreakLog, StreakSettings } from '../types';
-import { DB_NAME, DB_VERSION, STORE_NAME, SETTINGS_STORE_NAME, STREAK_STORE_NAME, DEFAULT_SETTINGS, DEFAULT_STREAK_SETTINGS } from '../constants';
+import { StudySession, TimerSettings, StreakLog, StreakSettings, JournalEntry } from '../types';
+import { DB_NAME, DB_VERSION, STORE_NAME, SETTINGS_STORE_NAME, STREAK_STORE_NAME, JOURNAL_STORE_NAME, DEFAULT_SETTINGS, DEFAULT_STREAK_SETTINGS } from '../constants';
 
 export class IDBService {
   private db: IDBDatabase | null = null;
@@ -44,6 +44,12 @@ export class IDBService {
         if (!db.objectStoreNames.contains(STREAK_STORE_NAME)) {
             const streakStore = db.createObjectStore(STREAK_STORE_NAME, { keyPath: 'id', autoIncrement: true });
             streakStore.createIndex('endDate', 'endDate', { unique: false });
+        }
+
+        // 4. Journal Store (Secret App)
+        if (!db.objectStoreNames.contains(JOURNAL_STORE_NAME)) {
+            const journalStore = db.createObjectStore(JOURNAL_STORE_NAME, { keyPath: 'id', autoIncrement: true });
+            journalStore.createIndex('timestamp', 'timestamp', { unique: false });
         }
       };
     });
@@ -198,12 +204,58 @@ export class IDBService {
           if (!this.db) return reject("Database not initialized");
           const transaction = this.db.transaction([STREAK_STORE_NAME], 'readonly');
           const store = transaction.objectStore(STREAK_STORE_NAME);
-          // Get all, sort by ID/date implicitly
           const request = store.getAll();
           request.onsuccess = () => {
               const logs = request.result as StreakLog[];
-              // Return newest first
               resolve(logs.sort((a, b) => b.endDate - a.endDate));
+          };
+          request.onerror = () => reject(request.error);
+      });
+  }
+
+  // --- Journal Methods ---
+
+  async addJournalEntry(entry: JournalEntry): Promise<void> {
+      if (!this.db) await this.init();
+      return new Promise((resolve, reject) => {
+          if (!this.db) return reject("Database not initialized");
+          const transaction = this.db.transaction([JOURNAL_STORE_NAME], 'readwrite');
+          const store = transaction.objectStore(JOURNAL_STORE_NAME);
+          const request = store.add(entry);
+          request.onsuccess = () => resolve();
+          request.onerror = () => reject(request.error);
+      });
+  }
+
+  async deleteJournalEntry(id: number): Promise<void> {
+      if (!this.db) await this.init();
+      return new Promise((resolve, reject) => {
+          if (!this.db) return reject("Database not initialized");
+          const transaction = this.db.transaction([JOURNAL_STORE_NAME], 'readwrite');
+          const store = transaction.objectStore(JOURNAL_STORE_NAME);
+          const request = store.delete(id);
+          request.onsuccess = () => resolve();
+          request.onerror = () => reject(request.error);
+      });
+  }
+
+  async getJournalEntries(): Promise<JournalEntry[]> {
+      if (!this.db) await this.init();
+      return new Promise((resolve, reject) => {
+          if (!this.db) return reject("Database not initialized");
+          const transaction = this.db.transaction([JOURNAL_STORE_NAME], 'readonly');
+          const store = transaction.objectStore(JOURNAL_STORE_NAME);
+          const index = store.index('timestamp');
+          const request = index.openCursor(null, 'prev'); // Newest first
+          const results: JournalEntry[] = [];
+          request.onsuccess = (event) => {
+             const cursor = (event.target as IDBRequest).result;
+             if (cursor) {
+                 results.push(cursor.value);
+                 cursor.continue();
+             } else {
+                 resolve(results);
+             }
           };
           request.onerror = () => reject(request.error);
       });

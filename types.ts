@@ -51,7 +51,18 @@ export interface StreakLog {
   durationSeconds: number;
 }
 
+export interface JournalEntry {
+  id?: number;
+  timestamp: number;
+  content: string;
+  mood: 'good' | 'neutral' | 'bad' | 'urge';
+}
+
 export interface StreakSettings {
   lastRelapseDate: number; // Timestamp
   bestStreakSeconds: number;
+  securityQuestion?: string;
+  securityAnswer?: string;
+  credentialId?: string; // For WebAuthn (Base64 encoded)
+  isActive: boolean; // Controls if the streak has started
 }

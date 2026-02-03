@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Ban, Sun, Moon } from 'lucide-react';
+import { Fingerprint, Sun, Moon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Button from './Button';
 
@@ -17,19 +17,25 @@ const Header: React.FC<HeaderProps> = ({ view, setView, showIndicator, theme, to
   return (
     <header className="w-full max-w-2xl px-6 py-8 flex items-center justify-between z-10">
       <div 
-        className="flex items-center gap-3 cursor-pointer group"
+        className="flex items-center gap-3 cursor-pointer group select-none"
         onClick={onSecretClick}
+        title="Access Secret Mode"
       >
          <motion.div 
-           className="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-center justify-center"
-           whileHover={{ scale: 1.1 }}
-           whileTap={{ scale: 0.9 }}
+           className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 group-hover:bg-amber-500 group-hover:text-zinc-950 transition-colors duration-300"
+           whileHover={{ scale: 1.05 }}
+           whileTap={{ scale: 0.95 }}
          >
-           <Ban className="w-4 h-4 text-rose-500" />
+           <Fingerprint className="w-6 h-6" strokeWidth={1.5} />
          </motion.div>
-         <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 opacity-80 group-hover:opacity-100 transition-opacity">
-           Do Not Touch
-         </h1>
+         <div className="flex flex-col">
+             <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 leading-none group-hover:text-amber-500 transition-colors">
+               FocusFlow
+             </h1>
+             <span className="text-[10px] text-zinc-400 font-medium tracking-widest uppercase h-3 transition-opacity duration-300">
+                 <span className="opacity-0 group-hover:opacity-100">Tap to Access</span>
+             </span>
+         </div>
       </div>
       <div className="flex items-center gap-2">
           <div className="flex items-center gap-1 bg-white dark:bg-zinc-900/80 p-1 rounded-xl border border-zinc-200 dark:border-zinc-800 backdrop-blur-sm shadow-sm">

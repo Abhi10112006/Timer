@@ -8,7 +8,8 @@ import Header from './components/Header';
 import TimerView from './components/TimerView';
 import StatsView from './components/StatsView';
 import Snackbar from './components/Snackbar';
-import SecretApp from './components/SecretApp'; // Import the new app
+import SecretApp from './components/SecretApp'; 
+import SecurityGate from './components/SecurityGate'; // Import SecurityGate
 import { useTimer } from './hooks/useTimer';
 
 const App: React.FC = () => {
@@ -21,6 +22,7 @@ const App: React.FC = () => {
   
   // Secret Mode State
   const [showSecretApp, setShowSecretApp] = useState(false);
+  const [isUnlocked, setIsUnlocked] = useState(false); // Track unlock status
 
   // Alarm State
   const [isAlarmRinging, setIsAlarmRinging] = useState(false);
@@ -394,7 +396,15 @@ const App: React.FC = () => {
   };
 
   if (showSecretApp) {
-      return <SecretApp onExit={() => setShowSecretApp(false)} />;
+      if (!isUnlocked) {
+          return (
+              <SecurityGate 
+                  onUnlock={() => setIsUnlocked(true)} 
+                  onExit={() => setShowSecretApp(false)} 
+              />
+          );
+      }
+      return <SecretApp onExit={() => { setShowSecretApp(false); setIsUnlocked(false); }} />;
   }
 
   return (
