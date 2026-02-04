@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Loader2, Image as ImageIcon, Share2, Download, User } from 'lucide-react';
+import { Sparkles, Loader2, Image as ImageIcon, Share2, Download, User, RefreshCw, Pencil } from 'lucide-react';
 import { dbService } from '../services/db';
 import { DailyReward } from '../types';
 import Button from './Button';
@@ -48,7 +48,7 @@ const mulberry32 = (a: number) => {
 
 const randRange = (rand: () => number, min: number, max: number) => min + rand() * (max - min);
 
-const generateArt = (day: number, name: string, timeText: string, quote: string): string => {
+const generateArt = (day: number, name: string, timeText: string, quote: string, seedOffset: number = 0): string => {
     const size = 1080;
     const canvas = document.createElement('canvas');
     canvas.width = size;
@@ -56,7 +56,9 @@ const generateArt = (day: number, name: string, timeText: string, quote: string)
     const ctx = canvas.getContext('2d');
     if (!ctx) return '';
 
-    const rand = mulberry32(day * 837492);
+    // Incorporate seedOffset to allow re-generation variations
+    // Ensure inputs are treated as numbers
+    const rand = mulberry32(day * 837492 + Math.floor(seedOffset));
     
     // --- SPECIAL STYLES ---
 
@@ -420,6 +422,7 @@ const DailyRewardCard: React.FC<DailyRewardCardProps> = ({ day, startDate }) => 
     const [username, setUsername] = useState<string | null>(null);
     const [nameInput, setNameInput] = useState('');
     const [checkingName, setCheckingName] = useState(true);
+    const [isEditingName, setIsEditingName] = useState(false);
 
     useEffect(() => {
         const init = async () => {
@@ -449,13 +452,27 @@ const DailyRewardCard: React.FC<DailyRewardCardProps> = ({ day, startDate }) => 
             const newSettings = { ...settings, username: nameInput.trim() };
             await dbService.saveStreakSettings(newSettings);
             setUsername(nameInput.trim());
+            setIsEditingName(false);
+            
+            // If reward already exists, auto-regenerate with new name
+            if (reward) {
+                generateRewardImage(Date.now());
+            }
+
         } catch (e) {
             console.error("Failed to save name", e);
         }
     };
 
-    const handleGenerate = async () => {
-        if (!username) return;
+    const handleEditName = () => {
+        setNameInput(username || '');
+        setIsEditingName(true);
+    };
+
+    const generateRewardImage = async (seedOffset: number = 0) => {
+        // Fallback to "Traveler" if username is somehow lost to prevent failure
+        const nameToUse = (isEditingName ? nameInput : username) || nameInput || "Traveler";
+        
         setLoading(true);
         
         // Calculate exact time string
@@ -472,7 +489,7 @@ const DailyRewardCard: React.FC<DailyRewardCardProps> = ({ day, startDate }) => 
         // Simulate async work for UI feedback
         setTimeout(async () => {
             try {
-                const base64Image = generateArt(day, username, timeText, quote);
+                const base64Image = generateArt(day, nameToUse, timeText, quote, seedOffset);
                 const newReward: DailyReward = {
                     day: day,
                     imageUrl: base64Image,
@@ -486,7 +503,14 @@ const DailyRewardCard: React.FC<DailyRewardCardProps> = ({ day, startDate }) => 
             } finally {
                 setLoading(false);
             }
-        }, 800);
+        }, 500); // Slightly shorter timeout for snappier feel
+    };
+
+    const handleGenerate = () => generateRewardImage(0);
+
+    const handleRemake = () => {
+        // No confirmation alert to ensure button feels responsive; simply regenerates
+        generateRewardImage(Date.now());
     };
 
     const handleShare = async () => {
@@ -535,23 +559,87 @@ const DailyRewardCard: React.FC<DailyRewardCardProps> = ({ day, startDate }) => 
                     <Sparkles className="w-4 h-4" />
                     <span className="text-xs font-bold uppercase tracking-widest">Daily Vision • Day {day}</span>
                 </div>
-                {reward && (
-                    <div className="flex gap-2">
+                
+                {/* Header Actions */}
+                <div className="flex gap-2">
+                    {username && !isEditingName && (
                         <button 
-                            onClick={handleDownload}
-                            className="p-1.5 text-zinc-500 hover:text-white transition-colors rounded-lg hover:bg-zinc-800"
-                            title="Download"
+                            onClick={handleEditName}
+                            disabled={loading}
+                            className="p-1.5 text-zinc-500 hover:text-white transition-colors rounded-lg hover:bg-zinc-800 disabled:opacity-50"
+                            title="Edit Name"
                         >
-                            <Download className="w-4 h-4" />
+                            <Pencil className="w-4 h-4" />
                         </button>
-                    </div>
-                )}
+                    )}
+                    {reward && !isEditingName && (
+                        <>
+                            <button 
+                                onClick={handleRemake}
+                                disabled={loading}
+                                className="p-1.5 text-zinc-500 hover:text-white transition-colors rounded-lg hover:bg-zinc-800 disabled:opacity-50"
+                                title="Remake Vision"
+                            >
+                                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                            </button>
+                            <button 
+                                onClick={handleDownload}
+                                disabled={loading}
+                                className="p-1.5 text-zinc-500 hover:text-white transition-colors rounded-lg hover:bg-zinc-800 disabled:opacity-50"
+                                title="Download"
+                            >
+                                <Download className="w-4 h-4" />
+                            </button>
+                        </>
+                    )}
+                </div>
             </div>
 
             <div className="aspect-square w-full relative bg-zinc-950 flex items-center justify-center group">
-                {reward ? (
+                {/* Show Input Form if Editing OR No Username Set */}
+                {isEditingName || !username ? (
+                     <motion.div 
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                        className="flex flex-col gap-6 p-8 text-center w-full max-w-xs"
+                     >
+                        <div className="flex justify-center">
+                            <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center text-zinc-400">
+                                <User className="w-6 h-6" />
+                            </div>
+                        </div>
+                        <div>
+                            <h3 className="text-white font-bold mb-1">Identify Yourself</h3>
+                            <p className="text-zinc-500 text-xs">Enter your name to imprint it upon your daily art.</p>
+                        </div>
+                        <Input 
+                            placeholder="Your Name / Alias"
+                            value={nameInput}
+                            onChange={(e) => setNameInput(e.target.value)}
+                            className="text-center"
+                        />
+                        <div className="flex gap-2">
+                            {isEditingName && username && (
+                                <Button onClick={() => setIsEditingName(false)} variant="secondary" className="flex-1">
+                                    Cancel
+                                </Button>
+                            )}
+                            <Button onClick={handleSaveName} disabled={!nameInput.trim()} className="flex-1">
+                                {isEditingName ? 'Update' : 'Confirm'}
+                            </Button>
+                        </div>
+                     </motion.div>
+                ) : reward ? (
                     <>
+                        {loading && (
+                            <div className="absolute inset-0 bg-zinc-950/80 flex items-center justify-center z-20 backdrop-blur-sm transition-all duration-300">
+                                <div className="flex flex-col items-center gap-2">
+                                    <Loader2 className="w-10 h-10 text-amber-500 animate-spin" />
+                                    <span className="text-xs text-amber-500 font-bold uppercase tracking-widest animate-pulse">Forging...</span>
+                                </div>
+                            </div>
+                        )}
                         <motion.img 
+                            key={reward.generatedAt} // Force re-render animation on remake
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             src={reward.imageUrl} 
@@ -559,71 +647,44 @@ const DailyRewardCard: React.FC<DailyRewardCardProps> = ({ day, startDate }) => 
                             className="w-full h-full object-cover"
                         />
                         {/* Overlay with Share Button */}
-                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
-                            <Button 
-                                onClick={handleShare}
-                                className="bg-white text-black hover:bg-zinc-200 font-bold gap-2"
-                            >
-                                <Share2 className="w-4 h-4" />
-                                Share Vision
-                            </Button>
-                        </div>
+                        {!loading && (
+                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                                <Button 
+                                    onClick={handleShare}
+                                    className="bg-white text-black hover:bg-zinc-200 font-bold gap-2"
+                                >
+                                    <Share2 className="w-4 h-4" />
+                                    Share Vision
+                                </Button>
+                            </div>
+                        )}
                     </>
                 ) : (
+                    // GENERATE STEP (Username exists, but no reward yet)
                     <div className="flex flex-col items-center gap-6 p-8 text-center w-full max-w-xs">
-                        {/* USERNAME INPUT STEP */}
-                        {!username ? (
-                             <motion.div 
-                                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                                className="flex flex-col gap-4 w-full"
-                             >
-                                <div className="flex justify-center">
-                                    <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center text-zinc-400">
-                                        <User className="w-6 h-6" />
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 className="text-white font-bold mb-1">Identify Yourself</h3>
-                                    <p className="text-zinc-500 text-xs">Enter your name to imprint it upon your daily art.</p>
-                                </div>
-                                <Input 
-                                    placeholder="Your Name / Alias"
-                                    value={nameInput}
-                                    onChange={(e) => setNameInput(e.target.value)}
-                                    className="text-center"
-                                />
-                                <Button onClick={handleSaveName} disabled={!nameInput.trim()}>
-                                    Confirm Identity
-                                </Button>
-                             </motion.div>
-                        ) : (
-                            // GENERATE STEP
+                        <div className="w-16 h-16 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center">
+                            {loading ? (
+                                <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
+                            ) : (
+                                <ImageIcon className="w-8 h-8 text-zinc-700" />
+                            )}
+                        </div>
+                        
+                        {!loading ? (
                             <>
-                                <div className="w-16 h-16 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center">
-                                    {loading ? (
-                                        <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
-                                    ) : (
-                                        <ImageIcon className="w-8 h-8 text-zinc-700" />
-                                    )}
-                                </div>
-                                
-                                {!loading ? (
-                                    <>
-                                        <p className="text-zinc-500 text-sm">
-                                            Reveal the unique art for <br/>
-                                            <span className="text-white font-bold">{username}</span>'s Day {day}.
-                                        </p>
-                                        <Button 
-                                            onClick={handleGenerate}
-                                            className="bg-amber-600 hover:bg-amber-500 text-white border-transparent"
-                                        >
-                                            Reveal Vision
-                                        </Button>
-                                    </>
-                                ) : (
-                                    <p className="text-zinc-500 text-xs animate-pulse">Forging vision...</p>
-                                )}
+                                <p className="text-zinc-500 text-sm">
+                                    Reveal the unique art for <br/>
+                                    <span className="text-white font-bold">{username}</span>'s Day {day}.
+                                </p>
+                                <Button 
+                                    onClick={handleGenerate}
+                                    className="bg-amber-600 hover:bg-amber-500 text-white border-transparent"
+                                >
+                                    Reveal Vision
+                                </Button>
                             </>
+                        ) : (
+                            <p className="text-zinc-500 text-xs animate-pulse">Forging vision...</p>
                         )}
                     </div>
                 )}
