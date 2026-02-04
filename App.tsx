@@ -47,11 +47,20 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-      if (theme === 'dark' || showSecretApp) { // Force dark mode for secret app
-          document.documentElement.classList.add('dark');
+      const isDark = theme === 'dark' || showSecretApp;
+      const root = document.documentElement;
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+
+      if (isDark) {
+          root.classList.add('dark');
+          // Update system nav bar color for dark mode
+          metaThemeColor?.setAttribute('content', '#09090b'); // zinc-950
       } else {
-          document.documentElement.classList.remove('dark');
+          root.classList.remove('dark');
+          // Update system nav bar color for light mode
+          metaThemeColor?.setAttribute('content', '#fafafa'); // zinc-50
       }
+      
       if (!showSecretApp) {
           localStorage.setItem('focusflow-theme', theme);
       }

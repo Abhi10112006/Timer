@@ -53,3 +53,46 @@ export const SUBJECT_COLORS = [
   { bg: 'bg-rose-50 dark:bg-rose-900/20', border: 'border-rose-200 dark:border-rose-800/50', text: 'text-rose-700 dark:text-rose-400', indicator: 'bg-rose-500' },
   { bg: 'bg-lime-50 dark:bg-lime-900/20', border: 'border-lime-200 dark:border-lime-800/50', text: 'text-lime-700 dark:text-lime-400', indicator: 'bg-lime-500' },
 ];
+
+export const STREAK_RANKS = [
+    { name: 'Initiate', days: 0, color: 'text-zinc-400' },
+    { name: 'Novice', days: 3, color: 'text-emerald-400' },
+    { name: 'Apprentice', days: 7, color: 'text-cyan-400' },
+    { name: 'Adept', days: 14, color: 'text-indigo-400' },
+    { name: 'Expert', days: 30, color: 'text-purple-400' },
+    { name: 'Master', days: 90, color: 'text-amber-400' },
+    { name: 'Legend', days: 365, color: 'text-rose-400' },
+];
+
+export const MOTIVATIONAL_QUOTES = [
+    "The only easy day was yesterday.",
+    "Discipline is doing what needs to be done, even if you don't want to do it.",
+    "Pain is temporary. Quitting lasts forever.",
+    "He who conquers himself is the mightiest warrior.",
+    "We suffer more often in imagination than in reality.",
+    "The best time to plant a tree was 20 years ago. The second best time is now.",
+    "Do something today that your future self will thank you for.",
+    "You are what you do, not what you say you'll do.",
+    "Don't count the days, make the days count.",
+    "A river cuts through rock, not because of its power, but because of its persistence.",
+    "Your potential is endless. Go do what you were created to do.",
+    "It does not matter how slowly you go as long as you do not stop.",
+    "Success consists of going from failure to failure without loss of enthusiasm.",
+    "The man who moves a mountain begins by carrying away small stones.",
+    "Believe you can and you're halfway there.",
+    "Tough times never last, but tough people do.",
+    "What you get by achieving your goals is not as important as what you become by achieving your goals.",
+    "If you want something you never had, you have to do something you've never done.",
+    "Your life does not get better by chance, it gets better by change.",
+    "Mastering others is strength. Mastering yourself is true power.",
+    "Self-discipline is the magic power that makes you virtually unstoppable.",
+    "We must all suffer from one of two pains: the pain of discipline or the pain of regret.",
+    "The distance between dreams and reality is called action.",
+    "Great things are not done by impulse, but by a series of small things brought together.",
+    "Strength does not come from physical capacity. It comes from an indomitable will.",
+    "Fall seven times, stand up eight.",
+    "Don't wait. The time will never be just right.",
+    "You don't have to be great to start, but you have to start to be great.",
+    "Everything you've ever wanted is on the other side of fear.",
+    "Freedom is not the absence of commitments, but the ability to choose and commit yourself to what is best for you."
+];

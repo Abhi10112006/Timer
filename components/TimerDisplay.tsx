@@ -1,3 +1,4 @@
+
 import React, { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TimerMode } from '../types';
@@ -125,7 +126,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({
   return (
     <div 
         ref={timerRef}
-        className={`relative mb-8 w-80 h-80 md:w-96 md:h-96 flex items-center justify-center touch-none ${mode === TimerMode.POMODORO && !isRunning && !isEditing ? 'cursor-grab active:cursor-grabbing' : ''}`}
+        className={`relative mb-8 w-full max-w-[20rem] aspect-square md:max-w-none md:w-96 md:h-96 flex items-center justify-center touch-none ${mode === TimerMode.POMODORO && !isRunning && !isEditing ? 'cursor-grab active:cursor-grabbing' : ''}`}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onPointerMove={handlePointerMove}
@@ -276,7 +277,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({
                   className={`flex flex-col items-center`}
                 >
                   {/* Time Display */}
-                  <span className={`font-mono font-bold tracking-tighter tabular-nums ${isRunning ? 'text-zinc-900 dark:text-white' : 'text-zinc-600 dark:text-zinc-500'} ${isLongFormat ? 'text-5xl md:text-6xl' : (showMs ? 'text-6xl md:text-7xl' : 'text-7xl md:text-8xl')}`}>
+                  <span className={`font-mono font-bold tracking-tighter tabular-nums ${isRunning ? 'text-zinc-900 dark:text-white' : 'text-zinc-600 dark:text-zinc-500'} ${isLongFormat ? 'text-4xl sm:text-5xl md:text-6xl' : (showMs ? 'text-5xl sm:text-6xl md:text-7xl' : 'text-6xl sm:text-7xl md:text-8xl')}`}>
                       {formatTime(displayValue, showMs)}
                   </span>
                    {mode === TimerMode.POMODORO && !isRunning && (

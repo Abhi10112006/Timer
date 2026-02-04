@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Timer, Brain, Coffee, Armchair, LucideIcon, Settings as SettingsIcon } from 'lucide-react';
@@ -273,7 +274,7 @@ const TimerView: React.FC<TimerViewProps> = ({
         </button>
       </div>
 
-      <div ref={containerRef}>
+      <div ref={containerRef} className="w-full flex justify-center">
         <TimerDisplay 
             mode={mode}
             timeLeft={timeLeft}
@@ -296,7 +297,7 @@ const TimerView: React.FC<TimerViewProps> = ({
                   initial={{ opacity: 0, scale: 0.95, y: -10 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                  className="flex justify-center gap-8 md:gap-12 mb-10 w-full"
+                  className="flex justify-center gap-6 sm:gap-8 md:gap-12 mb-10 w-full"
               >
                   <PresetDial 
                     minutes={25} 
