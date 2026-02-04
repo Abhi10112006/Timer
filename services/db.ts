@@ -1,6 +1,6 @@
 
-import { StudySession, TimerSettings, StreakLog, StreakSettings, JournalEntry } from '../types';
-import { DB_NAME, DB_VERSION, STORE_NAME, SETTINGS_STORE_NAME, STREAK_STORE_NAME, JOURNAL_STORE_NAME, DEFAULT_SETTINGS, DEFAULT_STREAK_SETTINGS } from '../constants';
+import { StudySession, TimerSettings, StreakLog, StreakSettings, JournalEntry, DailyReward } from '../types';
+import { DB_NAME, DB_VERSION, STORE_NAME, SETTINGS_STORE_NAME, STREAK_STORE_NAME, JOURNAL_STORE_NAME, REWARDS_STORE_NAME, DEFAULT_SETTINGS, DEFAULT_STREAK_SETTINGS } from '../constants';
 
 export class IDBService {
   private db: IDBDatabase | null = null;
@@ -50,6 +50,11 @@ export class IDBService {
         if (!db.objectStoreNames.contains(JOURNAL_STORE_NAME)) {
             const journalStore = db.createObjectStore(JOURNAL_STORE_NAME, { keyPath: 'id', autoIncrement: true });
             journalStore.createIndex('timestamp', 'timestamp', { unique: false });
+        }
+
+        // 5. Daily Rewards Store (New)
+        if (!db.objectStoreNames.contains(REWARDS_STORE_NAME)) {
+            const rewardsStore = db.createObjectStore(REWARDS_STORE_NAME, { keyPath: 'day' }); // Key by day number
         }
       };
     });
@@ -259,6 +264,32 @@ export class IDBService {
           };
           request.onerror = () => reject(request.error);
       });
+  }
+
+  // --- Reward Methods ---
+
+  async getDailyReward(day: number): Promise<DailyReward | undefined> {
+    if (!this.db) await this.init();
+    return new Promise((resolve, reject) => {
+        if (!this.db) return reject("Database not initialized");
+        const transaction = this.db.transaction([REWARDS_STORE_NAME], 'readonly');
+        const store = transaction.objectStore(REWARDS_STORE_NAME);
+        const request = store.get(day);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+  }
+
+  async saveDailyReward(reward: DailyReward): Promise<void> {
+    if (!this.db) await this.init();
+    return new Promise((resolve, reject) => {
+        if (!this.db) return reject("Database not initialized");
+        const transaction = this.db.transaction([REWARDS_STORE_NAME], 'readwrite');
+        const store = transaction.objectStore(REWARDS_STORE_NAME);
+        const request = store.put(reward);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
   }
 }
 

@@ -1,20 +1,22 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Power } from 'lucide-react';
+import { Power, Crown, LogOut } from 'lucide-react';
 import Button from './Button';
+import DailyRewardCard from './DailyReward';
 
 interface SecretDashboardProps {
     isActive: boolean;
     days: number;
     diff: number;
+    startDate: number;
     rank: { name: string; days: number; color: string };
     nextRank?: { name: string; days: number; color: string };
     progress: number;
     onStart: (timestamp: number) => void;
 }
 
-const SecretDashboard: React.FC<SecretDashboardProps> = ({ isActive, days, diff, rank, nextRank, progress, onStart }) => {
+const SecretDashboard: React.FC<SecretDashboardProps> = ({ isActive, days, diff, startDate, rank, nextRank, progress, onStart }) => {
     const [showDateInput, setShowDateInput] = useState(false);
     const [customDate, setCustomDate] = useState('');
 
@@ -33,15 +35,56 @@ const SecretDashboard: React.FC<SecretDashboardProps> = ({ isActive, days, diff,
         onStart(timestamp);
     };
 
+    // Graduation State: 100+ Days
+    if (isActive && days >= 100) {
+        return (
+            <motion.div 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }}
+                className="flex flex-col items-center justify-center h-full px-6 text-center pb-24"
+            >
+                <div className="w-32 h-32 bg-gradient-to-br from-amber-400 to-orange-600 rounded-full flex items-center justify-center mb-8 shadow-[0_0_50px_rgba(245,158,11,0.5)] animate-pulse">
+                    <Crown className="w-16 h-16 text-black" />
+                </div>
+                
+                <h1 className="text-4xl font-black text-white mb-4 tracking-tighter uppercase">Iron Will</h1>
+                
+                <div className="max-w-xs space-y-6">
+                    <p className="text-amber-100/80 text-lg font-medium leading-relaxed">
+                        You have forged yourself in fire for {days} days.
+                    </p>
+                    <p className="text-zinc-400 text-sm leading-relaxed">
+                        The chains of habit are broken. You are the master of your own mind.
+                        You no longer need this app to control yourself.
+                    </p>
+                    
+                    <div className="p-6 bg-zinc-900/50 border border-zinc-800 rounded-2xl mt-8">
+                        <span className="block text-4xl font-bold text-white mb-1">{days}</span>
+                        <span className="text-xs text-zinc-500 uppercase tracking-widest">Days Free</span>
+                    </div>
+
+                    <p className="text-xs text-zinc-600 italic">
+                        "He who conquers himself is the mightiest warrior."
+                    </p>
+                </div>
+                
+                {/* Still allow daily card generation for Day 100+ */}
+                <div className="w-full max-w-sm mt-8 pb-8">
+                     <DailyRewardCard day={days + 1} startDate={startDate} />
+                </div>
+            </motion.div>
+        );
+    }
+
     return (
         <motion.div 
             initial={{ opacity: 0, scale: 0.95 }} 
             animate={{ opacity: 1, scale: 1 }} 
             exit={{ opacity: 0, scale: 0.95 }}
-            className="flex flex-col items-center justify-center h-full px-6 gap-8 pb-16 w-full"
+            className="flex flex-col items-center justify-start h-full px-6 pb-24 w-full overflow-y-auto scrollbar-hide pt-6"
         >
             {!isActive ? (
-                <div className="flex flex-col items-center text-center gap-8 w-full max-w-sm">
+                <div className="flex flex-col items-center text-center gap-8 w-full max-w-sm my-auto">
                     <div className="w-24 h-24 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-4 shadow-[0_0_40px_rgba(255,255,255,0.05)]">
                         <Power className="w-10 h-10 text-zinc-500" />
                     </div>
@@ -100,13 +143,13 @@ const SecretDashboard: React.FC<SecretDashboardProps> = ({ isActive, days, diff,
             ) : (
                 <>
                     {/* Rank Badge */}
-                    <div className="flex flex-col items-center gap-4">
+                    <div className="flex flex-col items-center gap-4 shrink-0">
                         <div className={`text-xs font-bold uppercase tracking-widest ${rank.color} bg-zinc-900/80 px-4 py-1.5 rounded-full border border-zinc-800`}>
                             {rank.name}
                         </div>
                         
                         {/* Circular Progress with SVG ViewBox Fix */}
-                        <div className="relative w-64 h-64 md:w-80 md:h-80 flex items-center justify-center">
+                        <div className="relative w-64 h-64 md:w-80 md:h-80 flex items-center justify-center shrink-0">
                             <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
                                 {/* Background Circle */}
                                 <circle 
@@ -138,7 +181,7 @@ const SecretDashboard: React.FC<SecretDashboardProps> = ({ isActive, days, diff,
                     </div>
 
                     {/* Detailed Counter */}
-                    <div className="grid grid-cols-3 gap-4 w-full max-w-xs">
+                    <div className="grid grid-cols-3 gap-4 w-full max-w-xs shrink-0">
                         <div className="flex flex-col items-center bg-zinc-900/50 p-3 rounded-xl border border-zinc-800/50 backdrop-blur-sm">
                             <span className="text-xl md:text-2xl font-bold text-white tabular-nums">{h}</span>
                             <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mt-1">Hrs</span>
@@ -153,19 +196,10 @@ const SecretDashboard: React.FC<SecretDashboardProps> = ({ isActive, days, diff,
                         </div>
                     </div>
 
-                    {/* Next Rank Info */}
-                    {nextRank && (
-                        <div className="w-full max-w-xs bg-zinc-900/30 px-6 py-4 rounded-xl border border-zinc-800/50 flex items-center justify-between">
-                            <div className="flex flex-col">
-                                <span className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider mb-0.5">Next Rank</span>
-                                <span className={`font-bold text-sm ${nextRank.color}`}>{nextRank.name}</span>
-                            </div>
-                            <div className="text-right flex flex-col items-end">
-                                <span className="text-white font-bold text-lg">{nextRank.days - days}</span>
-                                <span className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider">days left</span>
-                            </div>
-                        </div>
-                    )}
+                    {/* Daily Reward Section */}
+                    <div className="w-full max-w-sm mt-8 pb-8">
+                         <DailyRewardCard day={days + 1} startDate={startDate} />
+                    </div>
                 </>
             )}
         </motion.div>

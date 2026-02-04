@@ -58,6 +58,13 @@ export interface JournalEntry {
   mood: 'good' | 'neutral' | 'bad' | 'urge';
 }
 
+export interface DailyReward {
+  id?: number;
+  day: number;
+  imageUrl: string; // Base64
+  generatedAt: number;
+}
+
 export interface StreakSettings {
   lastRelapseDate: number; // Timestamp
   bestStreakSeconds: number;
@@ -65,4 +72,5 @@ export interface StreakSettings {
   securityAnswer?: string;
   credentialId?: string; // For WebAuthn (Base64 encoded)
   isActive: boolean; // Controls if the streak has started
+  username?: string; // Name for the generated art
 }

@@ -187,6 +187,7 @@ const SecretApp: React.FC<SecretAppProps> = ({ onExit }) => {
                     isActive={isActive}
                     days={days} 
                     diff={diff} 
+                    startDate={settings.lastRelapseDate}
                     rank={currentRank} 
                     nextRank={nextRank} 
                     progress={progressToNext}
